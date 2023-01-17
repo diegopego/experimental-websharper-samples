@@ -24,29 +24,6 @@ type EndPoint =
     | [<EndPoint "/about">] About
     | [<EndPoint "/home">] Commbus
 
-type CommbusSite(logger: ILogger<CommbusSite>, config: IConfiguration) =
-    inherit SiteletService<EndPoint>()
-
-    override this.Sitelet = 
-        Application.MultiPage (fun (ctx: Context<EndPoint>) (endpoint: EndPoint) ->                
-            let urlStr = ctx.RequestUri.ToString()
-            printfn "MultiPage WebSocketEndpoint: %s" urlStr
-            let connPort = 
-                WebSocketEndpoint.Create(urlStr, "/commbus", JsonEncoding.Readable)
-            let content = 
-                match endpoint with
-                | EndPoint.Commbus -> 
-                    let pg = {
-                        Page.Default with
-                            Title = Some "commbus"
-                            Body = ([
-                                div [] [Doc.WebControl (InlineControl<_> (ws connPort initState prop serverOp)) ]
-                            ])
-                        }
-                    Content.Page pg
-            content
-            )
-
 module wsm =
     open System
     open System.Threading
