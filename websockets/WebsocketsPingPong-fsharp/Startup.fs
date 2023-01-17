@@ -4,7 +4,41 @@ open Microsoft.Extensions.Hosting
 open Microsoft.AspNetCore.Http
 open Microsoft.Extensions.DependencyInjection
 open WebSharper.AspNetCore
+open WebSharper.AspNetCore.WebSocket
+open WebSharper.AspNetCore.WebSocket.Server
 open WebsocketsPingPong_fsharp
+
+open wsm
+
+let initState = fun (client:WebSocketClient<_, _>) -> 
+     printfn "##########connected##########"
+     "connected"
+
+let prop = 
+     fun (client:WebSocketClient<string, string>) state c2sMsg -> 
+         async {
+             printfn "ws received: %A" c2sMsg
+             match c2sMsg with
+             | Message "serve" ->
+                 if state = "connected" then
+                     do! client.PostAsync "welcome"
+                     return "first blood"
+                 else
+                     do! client.PostAsync "ping"
+                     return "running"
+             | Message s ->
+                 do! client.PostAsync "ping"
+                 return "running"
+             | Error msgOmg ->
+                 return sprintf "disconnected, reason: %s" msgOmg.Message
+             | Close ->
+                 return "disconnected"
+         }
+
+
+let echoWebSocketAgent : StatefulAgent<string, string, string> = 
+     genWebSocketAgent<string, string, string> initState prop
+
 
 [<EntryPoint>]
 let main args =
@@ -28,7 +62,15 @@ let main args =
     app.UseHttpsRedirection()
         .UseAuthentication()
         .UseStaticFiles()
-        .UseWebSharper(fun ws -> ws.Sitelet(Site.Main) |> ignore)
+        .UseWebSockets()
+        .UseWebSharper(fun ws -> 
+            ws.Sitelet(Site.Main) |> ignore
+            ws.UseWebSocket(
+                            "commbus"
+                            , fun wsws ->                                 
+                                wsws.Use(echoWebSocketAgent).JsonEncoding(JsonEncoding.Readable) |> ignore
+                        )
+            )
     |> ignore
 
     app.Run()
