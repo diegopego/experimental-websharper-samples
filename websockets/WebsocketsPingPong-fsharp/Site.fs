@@ -88,6 +88,9 @@ module Site =
             p [] [text "This is a template WebSharper client-server application."]
         ]
 
+    [<JavaScript>]
+    let serverOp server = ()
+
     [<Website>]
     let Main =
         Application.MultiPage (fun ctx endpoint ->

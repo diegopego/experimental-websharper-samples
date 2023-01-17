@@ -16,8 +16,7 @@ module Templates =
 [<JavaScript>]
 module Client =
 
-    let ws (connPort:WebSocketEndpoint<string, string>) 
-        gs mh (clientProp: Client.WebSocketServer<string, string> -> unit) = 
+    let ws (connPort:WebSocketEndpoint<string, string>) gs mh (clientProp: Client.WebSocketServer<string, string> -> unit) = 
         let clientAgent
             (genState: Client.WebSocketServer<string, string> -> 'State)
             (msgHandler: Client.WebSocketServer<string, string> -> 'State -> Client.Message<string> -> Async<'State>)
@@ -49,7 +48,6 @@ module Client =
             return "diconnected"
     }
 
-    let serverOp server = ()
     let Main () =
         let rvReversed = Var.Create ""
         Templates.MainTemplate.MainForm()
