@@ -8,7 +8,7 @@ open WebSharper.UI.Server
 type EndPoint =
     | [<EndPoint "/">] Home
     | [<EndPoint "/about">] About
-    | [<EndPoint "/home">] Commbus
+    | [<EndPoint "/websockets-sample">] WebsocketsSample
 
 module Templating =
     open WebSharper.UI.Html
@@ -22,6 +22,7 @@ module Templating =
         [
             "Home" => EndPoint.Home
             "About" => EndPoint.About
+            "Websockets sample" => EndPoint.WebsocketsSample
         ]
 
     let Main ctx action (title: string) (body: Doc list) =
@@ -60,13 +61,13 @@ module Site =
             match endpoint with
             | EndPoint.Home -> HomePage ctx
             | EndPoint.About -> AboutPage ctx
-            | EndPoint.Commbus -> 
+            | EndPoint.WebsocketsSample -> 
                 let baseUrl = ctx.RequestUri.ToString()
                 let wsEndpoint = WebSocketServer.CreateEndpoint baseUrl
                 printfn $"MultiPage WebSocket Base Url: {baseUrl}"
                 let pg = {
                             Page.Default with
-                                Title = Some "commbus"
+                                Title = Some "Websockets Sample"
                                 Body = ([
                                     div [] [Doc.WebControl (InlineControl<_> (WebSocketClient.ws wsEndpoint))]
                                 ])
