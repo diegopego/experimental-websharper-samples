@@ -26,18 +26,22 @@ let main args =
             .UseHsts()
         |> ignore
 
-    app.UseHttpsRedirection()
+    app
+        .UseHttpsRedirection()
         .UseAuthentication()
         .UseStaticFiles()
         .UseWebSockets()
-        .UseWebSharper(fun ws -> 
+        .UseWebSharper(fun ws ->
             ws.Sitelet(Site.Main) |> ignore
+
             ws.UseWebSocket(
-                            WebSocketServer.serverRoute
-                            , fun wsws ->                                 
-                                wsws.Use(WebSocketServer.pingPongSocketAgent).JsonEncoding(JsonEncoding.Readable) |> ignore
-                        )
-            )
+                WebSocketServer.serverRoute,
+                fun wsws ->
+                    wsws
+                        .Use(WebSocketServer.pingPongSocketAgent)
+                        .JsonEncoding(JsonEncoding.Readable)
+                    |> ignore
+            ))
     |> ignore
 
     app.Run()
