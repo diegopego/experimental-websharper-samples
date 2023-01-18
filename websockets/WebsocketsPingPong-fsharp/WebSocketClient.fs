@@ -14,7 +14,7 @@ module WebSocketClient =
 
     let initState server = "connected"
 
-    let prop (server: Client.WebSocketServer<string, string>) state (s2cMsg:Client.Message<string>) = async {
+    let clientHandler (server: Client.WebSocketServer<string, string>) state (s2cMsg:Client.Message<string>) = async {
         Console.Log "websocket recieved:"
         Console.Log s2cMsg
         match s2cMsg with
@@ -39,7 +39,7 @@ module WebSocketClient =
                     }
                 }
         async {
-            let! server = Client.ConnectStateful connPort (clientAgent initState prop)
+            let! server = Client.ConnectStateful connPort (clientAgent initState clientHandler)
             serverOp server
         } |> Async.Start
         pre [] []
