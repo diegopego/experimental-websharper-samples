@@ -35,7 +35,7 @@ let main args =
             ws.UseWebSocket(
                             WebSocketServer.serverRoute
                             , fun wsws ->                                 
-                                wsws.Use(WebSocketServer.echoWebSocketAgent).JsonEncoding(JsonEncoding.Readable) |> ignore
+                                wsws.Use(WebSocketServer.pingPongSocketAgent).JsonEncoding(JsonEncoding.Readable) |> ignore
                         )
             )
     |> ignore

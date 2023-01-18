@@ -50,7 +50,7 @@ module WebSocketServer =
              }
 
 
-    let echoWebSocketAgent : StatefulAgent<string, string, string> = 
+    let pingPongSocketAgent : StatefulAgent<string, string, string> = 
          genWebSocketAgent<string, string, string> initState serverHandler
 
     let CreateEndpoint baseUrl = 
