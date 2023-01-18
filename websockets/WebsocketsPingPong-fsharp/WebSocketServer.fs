@@ -8,10 +8,10 @@ module WebSocketServer =
 
     let serverRoute = "ws"
 
-    let genWebSocketAgent<'S2CMessage, 'C2SMessage, 'State>
-        (genState: WebSocketClient<'S2CMessage, 'C2SMessage> -> 'State)
-        (msgHandler: WebSocketClient<'S2CMessage, 'C2SMessage> -> 'State -> Message<'C2SMessage> -> Async<'State>)
-        : StatefulAgent<'S2CMessage, 'C2SMessage, 'State> =
+    let genWebSocketAgent<'ServerToClientMessage, 'ClientToServerMessage, 'State>
+        (genState: WebSocketClient<'ServerToClientMessage, 'ClientToServerMessage> -> 'State)
+        (msgHandler: WebSocketClient<'ServerToClientMessage, 'ClientToServerMessage> -> 'State -> Message<'ClientToServerMessage> -> Async<'State>)
+        : StatefulAgent<'ServerToClientMessage, 'ClientToServerMessage, 'State> =
         fun client ->
             async {
                 let clientIp = client.Connection.Context.Connection.RemoteIpAddress.ToString()
@@ -19,14 +19,14 @@ module WebSocketServer =
 
                 return
                     genState client,
-                    fun state c2sMsg ->
+                    fun state clientToServerMsg ->
                         async {
                             let tid = Threading.Thread.CurrentThread.ManagedThreadId
 
                             printfn
-                                $"[tid: {tid}] Received message {c2sMsg} (state: {state}) from {clientId} ({clientIp})"
+                                $"[tid: {tid}] Received message {clientToServerMsg} (state: {state}) from {clientId} ({clientIp})"
 
-                            return! msgHandler client state c2sMsg
+                            return! msgHandler client state clientToServerMsg
                         }
             }
 
@@ -36,11 +36,11 @@ module WebSocketServer =
             "connected"
 
     let serverHandler =
-        fun (client: WebSocketClient<string, string>) state c2sMsg ->
+        fun (client: WebSocketClient<string, string>) state clientToServerMsg ->
             async {
-                printfn $"ws received: {c2sMsg}"
+                printfn $"ws received: {clientToServerMsg}"
 
-                match c2sMsg with
+                match clientToServerMsg with
                 | Message "serve" ->
                     if state = "connected" then
                         do! client.PostAsync "welcome"

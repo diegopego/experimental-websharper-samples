@@ -36,8 +36,8 @@ let main args =
 
             ws.UseWebSocket(
                 WebSocketServer.serverRoute,
-                fun wsws ->
-                    wsws
+                fun builder ->
+                    builder
                         .Use(WebSocketServer.pingPongSocketAgent)
                         .JsonEncoding(JsonEncoding.Readable)
                     |> ignore

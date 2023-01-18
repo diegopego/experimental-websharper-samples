@@ -14,12 +14,12 @@ module WebSocketClient =
 
     let initState server = "connected"
 
-    let clientHandler (server: Client.WebSocketServer<string, string>) state (s2cMsg: Client.Message<string>) =
+    let clientHandler (server: Client.WebSocketServer<string, string>) state (serverToClientMsg: Client.Message<string>) =
         async {
             Console.Log "websocket recieved:"
-            Console.Log s2cMsg
+            Console.Log serverToClientMsg
 
-            match s2cMsg with
+            match serverToClientMsg with
             | Client.Message msg ->
                 server.Post "pong"
                 return "pong"
