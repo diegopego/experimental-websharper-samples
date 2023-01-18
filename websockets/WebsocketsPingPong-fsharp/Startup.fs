@@ -5,7 +5,6 @@ open Microsoft.AspNetCore.Http
 open Microsoft.Extensions.DependencyInjection
 open WebSharper.AspNetCore
 open WebSharper.AspNetCore.WebSocket
-open WebSharper.AspNetCore.WebSocket.Server
 open WebsocketsPingPong_fsharp
 
 [<EntryPoint>]
@@ -34,7 +33,7 @@ let main args =
         .UseWebSharper(fun ws -> 
             ws.Sitelet(Site.Main) |> ignore
             ws.UseWebSocket(
-                            "commbus"
+                            WebSocketServer.serverRoute
                             , fun wsws ->                                 
                                 wsws.Use(WebSocketServer.echoWebSocketAgent).JsonEncoding(JsonEncoding.Readable) |> ignore
                         )

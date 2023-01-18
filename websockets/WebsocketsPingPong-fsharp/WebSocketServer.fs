@@ -1,9 +1,12 @@
 ﻿namespace WebsocketsPingPong_fsharp
 
 open System
+open WebSharper.AspNetCore.WebSocket
 open WebSharper.AspNetCore.WebSocket.Server
 
 module WebSocketServer = 
+
+    let serverRoute = "ws"
 
     module wsm =
         open System
@@ -55,3 +58,6 @@ module WebSocketServer =
 
     let echoWebSocketAgent : StatefulAgent<string, string, string> = 
          genWebSocketAgent<string, string, string> initState prop
+
+    let CreateEndpoint baseUrl = 
+        WebSocketEndpoint.Create(baseUrl, $"/{serverRoute}", JsonEncoding.Readable)

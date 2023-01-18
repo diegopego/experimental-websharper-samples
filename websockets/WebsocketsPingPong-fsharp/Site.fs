@@ -39,7 +39,7 @@ module Site =
     open type WebSharper.UI.ClientServer
 
     open WebSharper.Web
-    open WebSharper.AspNetCore.WebSocket
+    
     open Client
 
     let HomePage ctx =
@@ -61,15 +61,14 @@ module Site =
             | EndPoint.Home -> HomePage ctx
             | EndPoint.About -> AboutPage ctx
             | EndPoint.Commbus -> 
-                let urlStr = ctx.RequestUri.ToString()
-                printfn "MultiPage WebSocketEndpoint: %s" urlStr
-                let connPort = 
-                    WebSocketEndpoint.Create(urlStr, "/commbus", JsonEncoding.Readable)
+                let baseUrl = ctx.RequestUri.ToString()
+                let wsEndpoint = WebSocketServer.CreateEndpoint baseUrl
+                printfn $"MultiPage WebSocket Base Url: {baseUrl}"
                 let pg = {
                             Page.Default with
                                 Title = Some "commbus"
                                 Body = ([
-                                    div [] [Doc.WebControl (InlineControl<_> (WebSocketClient.ws connPort))]
+                                    div [] [Doc.WebControl (InlineControl<_> (WebSocketClient.ws wsEndpoint))]
                                 ])
                             }
                 Content.Page pg
