@@ -5,6 +5,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Include="WebSocketServer.fs" />
     <Compile Include="Remoting.fs" />
     <Compile Include="Client.fs" />
     <Compile Include="Site.fs" />
