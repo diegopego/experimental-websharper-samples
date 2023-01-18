@@ -8,34 +8,12 @@ module WebSocketServer =
 
     let serverRoute = "ws"
 
-    let genWebSocketAgent<'ServerToClientMessage, 'ClientToServerMessage, 'State>
-        (genState: WebSocketClient<'ServerToClientMessage, 'ClientToServerMessage> -> 'State)
-        (msgHandler: WebSocketClient<'ServerToClientMessage, 'ClientToServerMessage> -> 'State -> Message<'ClientToServerMessage> -> Async<'State>)
-        : StatefulAgent<'ServerToClientMessage, 'ClientToServerMessage, 'State> =
-        fun client ->
-            async {
-                let clientIp = client.Connection.Context.Connection.RemoteIpAddress.ToString()
-                let clientId = client.Connection.Context.Connection.Id
-
-                return
-                    genState client,
-                    fun state clientToServerMsg ->
-                        async {
-                            let tid = Threading.Thread.CurrentThread.ManagedThreadId
-
-                            printfn
-                                $"[tid: {tid}] Received message {clientToServerMsg} (state: {state}) from {clientId} ({clientIp})"
-
-                            return! msgHandler client state clientToServerMsg
-                        }
-            }
-
     let initState =
         fun (client: WebSocketClient<_, _>) ->
             printfn "##########connected##########"
             "connected"
 
-    let serverHandler =
+    let serverMsgHandler =
         fun (client: WebSocketClient<string, string>) state clientToServerMsg ->
             async {
                 printfn $"ws received: {clientToServerMsg}"
@@ -55,9 +33,24 @@ module WebSocketServer =
                 | Close -> return "disconnected"
             }
 
+    let pingPongSocketAgent : StatefulAgent<string, string, string> =
+        fun client ->
+            async {
+                let clientIp = client.Connection.Context.Connection.RemoteIpAddress.ToString()
+                let clientId = client.Connection.Context.Connection.Id
 
-    let pingPongSocketAgent: StatefulAgent<string, string, string> =
-        genWebSocketAgent<string, string, string> initState serverHandler
+                return
+                    initState client,
+                    fun state clientToServerMsg ->
+                        async {
+                            let tid = Threading.Thread.CurrentThread.ManagedThreadId
+
+                            printfn
+                                $"[tid: {tid}] Received message {clientToServerMsg} (state: {state}) from {clientId} ({clientIp})"
+
+                            return! serverMsgHandler client state clientToServerMsg
+                        }
+            }
 
     let CreateEndpoint baseUrl =
         WebSocketEndpoint.Create(baseUrl, $"/{serverRoute}", JsonEncoding.Readable)
