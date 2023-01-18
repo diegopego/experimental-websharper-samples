@@ -2,22 +2,8 @@ namespace WebsocketsPingPong_fsharp
 
 open WebSharper
 open WebSharper.Sitelets
-
 open WebSharper.UI
-open WebSharper.UI.Html
 open WebSharper.UI.Server
-
-open WebSharper.Web
-open WebSharper.Sitelets
-open WebSharper.AspNetCore
-open WebSharper.AspNetCore.WebSocket
-open WebSharper.AspNetCore.WebSocket.Server
-open WebSharper.AspNetCore.Sitelets
-
-open Microsoft.Extensions.Configuration
-open Microsoft.Extensions.Logging
-
-open Client
 
 type EndPoint =
     | [<EndPoint "/">] Home
@@ -52,6 +38,10 @@ module Site =
 
     open type WebSharper.UI.ClientServer
 
+    open WebSharper.Web
+    open WebSharper.AspNetCore.WebSocket
+    open Client
+
     let HomePage ctx =
         Templating.Main ctx EndPoint.Home "Home" [
             h1 [] [text "Say Hi to the server!"]
@@ -63,9 +53,6 @@ module Site =
             h1 [] [text "About"]
             p [] [text "This is a template WebSharper client-server application."]
         ]
-
-    [<JavaScript>]
-    let serverOp server = ()
 
     [<Website>]
     let Main =
@@ -82,7 +69,7 @@ module Site =
                             Page.Default with
                                 Title = Some "commbus"
                                 Body = ([
-                                    div [] [Doc.WebControl (InlineControl<_> (ws connPort initState prop serverOp)) ]
+                                    div [] [Doc.WebControl (InlineControl<_> (WebSocketClient.ws connPort))]
                                 ])
                             }
                 Content.Page pg
