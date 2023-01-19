@@ -36,11 +36,8 @@ module Templating =
 
 module Site =
     open WebSharper.UI.Html
-
     open type WebSharper.UI.ClientServer
-
     open WebSharper.Web
-    
     open Client
 
     let HomePage ctx =

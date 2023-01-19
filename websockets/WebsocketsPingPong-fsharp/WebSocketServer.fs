@@ -8,8 +8,6 @@ module WebSocketServer =
 
     let serverRoute = "ws"
 
-
-
     let serverMsgHandler =
         fun (client: WebSocketClient<string, string>) serverState clientToServerMsg ->
             async {

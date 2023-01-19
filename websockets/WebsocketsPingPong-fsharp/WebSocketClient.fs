@@ -4,14 +4,14 @@ open WebSharper
 open WebSharper.JavaScript
 open WebSharper.UI
 open WebSharper.UI.Html
-open WebSharper.UI.Templating
-open WebSharper.UI.Notation
 open WebSharper.AspNetCore.WebSocket
 
 [<JavaScript>]
 module WebSocketClient =
+
     let pongCounterStartsAt = 1
     let maximumPongs = 10
+
     let clientHandler
         (server: Client.WebSocketServer<string, string>)
         (clientState: int)
