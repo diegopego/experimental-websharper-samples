@@ -8,32 +8,39 @@ module WebSocketServer =
 
     let serverRoute = "ws"
 
-    let initState =
-        fun (client: WebSocketClient<_, _>) ->
-            printfn "##########connected##########"
-            "connected"
+
 
     let serverMsgHandler =
         fun (client: WebSocketClient<string, string>) state clientToServerMsg ->
             async {
-                printfn $"ws received: {clientToServerMsg}"
+                printfn $"ws received message: {clientToServerMsg}"
+                printfn $"ws received state .: {state}"
 
                 match clientToServerMsg with
-                | Message "serve" ->
-                    if state = "connected" then
+                | Message "connect" ->
+                    if state = "server initial state" then
                         do! client.PostAsync "welcome"
-                        return "first blood"
                     else
-                        do! client.PostAsync "ping"
-                        return "running"
+                        do! client.PostAsync "welcome back!"
+
+                    return "client connected"
                 | Message s ->
-                    do! client.PostAsync "ping"
-                    return "running"
+                    if state = "server initial state" then
+                        do! client.PostAsync "connect is required"
+                        return state
+                    else
+                        do! client.PostAsync "pong"
+                        return "ponging"
                 | Error msgOmg -> return sprintf $"disconnected, reason: {msgOmg.Message}"
                 | Close -> return "disconnected"
             }
 
-    let pingPongSocketAgent : StatefulAgent<string, string, string> =
+    let pingPongSocketAgent: StatefulAgent<string, string, string> =
+        let initState =
+            fun (client: WebSocketClient<_, _>) ->
+                printfn $"connected to this client: {client.Connection.Context.Connection.RemoteIpAddress.ToString()}"
+                "server initial state"
+
         fun client ->
             async {
                 let clientIp = client.Connection.Context.Connection.RemoteIpAddress.ToString()

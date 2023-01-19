@@ -10,36 +10,47 @@ open WebSharper.AspNetCore.WebSocket
 
 [<JavaScript>]
 module WebSocketClient =
-    let serverOp server = ()
-
-    let initState server = "connected"
-
-    let clientHandler (server: Client.WebSocketServer<string, string>) state (serverToClientMsg: Client.Message<string>) =
+    let clientHandler
+        (server: Client.WebSocketServer<string, string>)
+        state
+        (serverToClientMsg: Client.Message<string>)
+        =
         async {
-            Console.Log "websocket recieved:"
+            Console.Log "websocket received message:"
             Console.Log serverToClientMsg
+            Console.Log $"websocket received state: {state}"
 
             match serverToClientMsg with
-            | Client.Message msg ->
-                server.Post "pong"
-                return "pong"
             | Client.Open ->
-                server.Post "mega killed"
-                return "connected"
-            | _ -> return "diconnected"
+                server.Post "connect"
+                return "connected to the server"
+            | Client.Message "welcome" ->
+                // try connecting again just for fun!
+                server.Post "connect"
+                return "connected to server 2nd time"
+            | Client.Message "welcome back!" ->
+                // finally, do some pinging
+                server.Post "ping"
+                return "pinging"
+            | Client.Message "pong" ->
+                    server.Post "ping"
+                    return "pinging"
+            | _ -> return "disconnected"
         }
 
-    let ws (connPort: WebSocketEndpoint<string, string>) =
-        let clientAgent
-            (genState: Client.WebSocketServer<string, string> -> 'State)
-            (msgHandler: Client.WebSocketServer<string, string> -> 'State -> Client.Message<string> -> Async<'State>)
-            : Client.StatefulAgent<string, string, 'State> =
+    let ws (wsEndpoint: WebSocketEndpoint<string, string>) =
+        let initState (server: Client.WebSocketServer<string, string>) = 
+            Console.Log $"server ready state before connection: {server.Connection.ReadyState}"
+            "client initial state"
+
+        let clientAgent: Client.StatefulAgent<string, string, string> =
             fun server ->
-                async { return genState server, (fun state msg -> async { return! msgHandler server state msg }) }
+                async { return initState server, (fun state msg -> async { return! clientHandler server state msg }) }
 
         async {
-            let! server = Client.ConnectStateful connPort (clientAgent initState clientHandler)
-            serverOp server
+            let! server = Client.ConnectStateful wsEndpoint clientAgent
+            Console.Log $"server ready state after connection: {server.Connection.ReadyState}"
+            ()
         }
         |> Async.Start
 
