@@ -11,24 +11,25 @@ module WebSocketServer =
 
 
     let serverMsgHandler =
-        fun (client: WebSocketClient<string, string>) state clientToServerMsg ->
+        fun (client: WebSocketClient<string, string>) serverState clientToServerMsg ->
             async {
-                printfn $"ws received message: {clientToServerMsg}"
-                printfn $"ws received state .: {state}"
+                printfn $"server's current state : {serverState}"
+                printfn $"ws received message ...: {clientToServerMsg}"
 
                 match clientToServerMsg with
                 | Message "connect" ->
-                    if state = "server initial state" then
+                    if serverState = "server initial state" then
                         do! client.PostAsync "welcome"
                     else
                         do! client.PostAsync "welcome back!"
 
                     return "client connected"
                 | Message s ->
-                    if state = "server initial state" then
+                    if serverState = "server initial state" then
                         do! client.PostAsync "connect is required"
-                        return state
+                        return serverState
                     else
+                        do! Async.Sleep 100
                         do! client.PostAsync "pong"
                         return "ponging"
                 | Error msgOmg -> return sprintf $"disconnected, reason: {msgOmg.Message}"
@@ -48,14 +49,14 @@ module WebSocketServer =
 
                 return
                     initState client,
-                    fun state clientToServerMsg ->
+                    fun serverState clientToServerMsg ->
                         async {
                             let tid = Threading.Thread.CurrentThread.ManagedThreadId
 
                             printfn
-                                $"[tid: {tid}] Received message {clientToServerMsg} (state: {state}) from {clientId} ({clientIp})"
+                                $"[tid: {tid}] Received message {clientToServerMsg} (state: {serverState}) from {clientId} ({clientIp})"
 
-                            return! serverMsgHandler client state clientToServerMsg
+                            return! serverMsgHandler client serverState clientToServerMsg
                         }
             }
 
